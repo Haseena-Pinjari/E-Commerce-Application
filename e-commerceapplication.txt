@@ -1,0 +1,64 @@
+// Frontend - React
+
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+function App() {
+  const [products, setProducts] = useState([]);
+  const [search, setSearch] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // Fetch products
+  useEffect(() => {
+    axios.get(`http://localhost:5000/products?search=${search}`)
+      .then(res => setProducts(res.data))
+      .catch(err => console.error(err));
+  }, [search]);
+
+  // Handle login
+  const handleLogin = async () => {
+    try {
+      const res = await axios.post('http://localhost:5000/login', { email, password });
+      localStorage.setItem('token', res.data.token);
+      setIsLoggedIn(true);
+    } catch (err) {
+      alert('Login failed');
+    }
+  };
+
+  if (!isLoggedIn) {
+    return (
+      <div>
+        <h2>Login</h2>
+        <input type="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} />
+        <input type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} />
+        <button onClick={handleLogin}>Login</button>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <h1>E-Commerce App</h1>
+      <input type="text" placeholder="Search products..." onChange={(e) => setSearch(e.target.value)} />
+      <div>
+        {products.length > 0 ? (
+          products.map(product => (
+            <div key={product._id}>
+              <h3>{product.name}</h3>
+              <p>{product.category}</p>
+              <p>${product.price}</p>
+              <img src={product.image} alt={product.name} width="100" />
+            </div>
+          ))
+        ) : (
+          <p>No products found</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+export default App;
